@@ -2,6 +2,7 @@ package com.hs.healeon.service;
 
 import com.hs.healeon.dto.PatientRequestDTO;
 import com.hs.healeon.dto.PatientResponseDTO;
+import com.hs.healeon.exception.EmailAlreadyExistsException;
 import com.hs.healeon.mapper.PatientMapper;
 import com.hs.healeon.models.Patient;
 import com.hs.healeon.repository.PatientRepository;
@@ -31,6 +32,14 @@ public class PatientService {
 
     //    create new patient entry
     public PatientResponseDTO createPatient(PatientRequestDTO patientRequestDTO) {
+        boolean isEmailExists = patientRepository.existsByEmail(patientRequestDTO.getEmail());
+
+        if (isEmailExists) {
+            throw new EmailAlreadyExistsException(
+                    "A patient with this email already exists: " + patientRequestDTO.getEmail()
+            );
+        }
+
         Patient newPatient = patientRepository.save(
                 PatientMapper.toModel(patientRequestDTO)
         );
