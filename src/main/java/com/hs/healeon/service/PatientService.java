@@ -23,6 +23,7 @@ public class PatientService {
         List<Patient> patients = patientRepository.findAll();
 
         return patients.stream()
+//                patient-> PatientMapper.toDTO(patient)
                 .map(PatientMapper::toDTO)
                 .toList();
     }
