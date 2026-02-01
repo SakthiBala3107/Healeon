@@ -1,5 +1,6 @@
 package com.hs.healeon.service;
 
+import com.hs.healeon.dto.PatientRequestDTO;
 import com.hs.healeon.dto.PatientResponseDTO;
 import com.hs.healeon.mapper.PatientMapper;
 import com.hs.healeon.models.Patient;
@@ -18,13 +19,22 @@ public class PatientService {
 
 //logics
 
-//    RETURN ALL THE DETAILS OF THE PATIENTS(DTO)
+    //    RETURN ALL THE DETAILS OF THE PATIENTS(DTO)
     public List<PatientResponseDTO> getPatients() {
         List<Patient> patients = patientRepository.findAll();
 
         return patients.stream()
+//                patient-> PatientMapper.toDTO(patient)
                 .map(PatientMapper::toDTO)
                 .toList();
+    }
+
+    //    create new patient entry
+    public PatientResponseDTO createPatient(PatientRequestDTO patientRequestDTO) {
+        Patient newPatient = patientRepository.save(
+                PatientMapper.toModel(patientRequestDTO)
+        );
+        return PatientMapper.toDTO(newPatient);
     }
 
 //
