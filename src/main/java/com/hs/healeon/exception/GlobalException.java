@@ -63,7 +63,7 @@ public class GlobalException {
         error.put("message", "Email address already exists");
 
         return ResponseEntity
-                .status(HttpStatus.CONFLICT)
+                .badRequest()
                 .body(error);
     }
 
