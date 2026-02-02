@@ -3,6 +3,7 @@ package com.hs.healeon.service;
 import com.hs.healeon.dto.PatientRequestDTO;
 import com.hs.healeon.dto.PatientResponseDTO;
 import com.hs.healeon.exception.EmailAlreadyExistsException;
+import com.hs.healeon.exception.PatientNotFoundException;
 import com.hs.healeon.mapper.PatientMapper;
 import com.hs.healeon.models.Patient;
 import com.hs.healeon.repository.PatientRepository;
@@ -10,41 +11,61 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class PatientService {
 
-
     private final PatientRepository patientRepository;
 
-//logics
+    // HELPER METHODS
+    private void validateEmail(String email) {
+        if (patientRepository.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException(email);
+        }
+    }
 
-    //    RETURN ALL THE DETAILS OF THE PATIENTS(DTO)
+    // GET ALL PATIENT DETAILS
     public List<PatientResponseDTO> getPatients() {
         List<Patient> patients = patientRepository.findAll();
 
         return patients.stream()
-//                patient-> PatientMapper.toDTO(patient)
                 .map(PatientMapper::toDTO)
                 .toList();
     }
 
-    //    create new patient entry
+    // CREATE NEW PATIENT
     public PatientResponseDTO createPatient(PatientRequestDTO patientRequestDTO) {
-        boolean isEmailExists = patientRepository.existsByEmail(patientRequestDTO.getEmail());
 
-        if (isEmailExists) {
-            throw new EmailAlreadyExistsException(
-                    "A patient with this email already exists: " + patientRequestDTO.getEmail()
-            );
-        }
+        // CHECK IF EMAIL ALREADY EXISTS
+        validateEmail(patientRequestDTO.getEmail());
 
         Patient newPatient = patientRepository.save(
                 PatientMapper.toModel(patientRequestDTO)
         );
+
         return PatientMapper.toDTO(newPatient);
     }
 
-//
+    // UPDATE PATIENT
+    public PatientResponseDTO updatePatient(UUID id, PatientRequestDTO patientRequestDTO) {
+
+        Patient patient = patientRepository.findById(id)
+                .orElseThrow(() -> new PatientNotFoundException(id));
+
+        // CHECK IF EMAIL ALREADY EXISTS
+        validateEmail(patientRequestDTO.getEmail());
+
+        // UPDATE FIELDS
+        patient.setName(patientRequestDTO.getName());
+        patient.setEmail(patientRequestDTO.getEmail());
+        patient.setAddress(patientRequestDTO.getAddress());
+        patient.setDateOfBirth(patientRequestDTO.getDateOfBirth());
+
+        Patient updatedPatient = patientRepository.save(patient);
+
+        // CONVERT ENTITY TO DTO
+        return PatientMapper.toDTO(updatedPatient);
+    }
 }

@@ -2,14 +2,18 @@ package com.hs.healeon.controller;
 
 import com.hs.healeon.dto.PatientRequestDTO;
 import com.hs.healeon.dto.PatientResponseDTO;
+import com.hs.healeon.dto.validators.CreatePatientValidationGroup;
 import com.hs.healeon.service.PatientService;
 import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/patients")
@@ -31,11 +35,21 @@ public class PatientController {
 
     //    Create a new patient
     @PostMapping
-    public ResponseEntity<PatientResponseDTO> createPatient(@Valid @RequestBody PatientRequestDTO patientRequestDTO) {
-      return  ResponseEntity.status(HttpStatus.CREATED).body(patientService.createPatient(patientRequestDTO));
+    public ResponseEntity<PatientResponseDTO> createPatient(@Validated({Default.class, CreatePatientValidationGroup.class}) @RequestBody PatientRequestDTO
+                                                                    patientRequestDTO) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(patientService.createPatient(patientRequestDTO));
 
     }
 
+
+    //    Update patient details
+    @PutMapping("/{id}")
+    public ResponseEntity<PatientResponseDTO> updatePatient(@PathVariable UUID id,
+                                                            @Validated({Default.class}) @RequestBody PatientRequestDTO patientRequestDTO) {
+
+        PatientResponseDTO patientResponseDTO = patientService.updatePatient(id, patientRequestDTO);
+        return ResponseEntity.ok().body(patientResponseDTO);
+    }
 
 //end of class
 }
