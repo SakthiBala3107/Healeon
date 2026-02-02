@@ -20,8 +20,16 @@ public class PatientService {
     private final PatientRepository patientRepository;
 
     // HELPER METHODS
-    private void validateEmail(String email) {
+    // CREATE
+    private void validateEmailForCreate(String email) {
         if (patientRepository.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException(email);
+        }
+    }
+
+    // UPDATE
+    private void validateEmailForUpdate(String email, UUID id) {
+        if (patientRepository.existsByEmailAndIdNot(email, id)) {
             throw new EmailAlreadyExistsException(email);
         }
     }
@@ -39,7 +47,7 @@ public class PatientService {
     public PatientResponseDTO createPatient(PatientRequestDTO patientRequestDTO) {
 
         // CHECK IF EMAIL ALREADY EXISTS
-        validateEmail(patientRequestDTO.getEmail());
+        validateEmailForCreate(patientRequestDTO.getEmail());
 
         Patient newPatient = patientRepository.save(
                 PatientMapper.toModel(patientRequestDTO)
@@ -55,7 +63,7 @@ public class PatientService {
                 .orElseThrow(() -> new PatientNotFoundException(id));
 
         // CHECK IF EMAIL ALREADY EXISTS
-        validateEmail(patientRequestDTO.getEmail());
+        validateEmailForUpdate(patientRequestDTO.getEmail(), id);
 
         // UPDATE FIELDS
         patient.setName(patientRequestDTO.getName());
@@ -67,5 +75,10 @@ public class PatientService {
 
         // CONVERT ENTITY TO DTO
         return PatientMapper.toDTO(updatedPatient);
+    }
+
+//    Delete patient
+    public void deletePatient(UUID id) {
+        patientRepository.deleteById(id);
     }
 }
