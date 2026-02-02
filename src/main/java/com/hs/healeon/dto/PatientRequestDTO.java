@@ -1,5 +1,6 @@
 package com.hs.healeon.dto;
 
+import com.hs.healeon.dto.validators.CreatePatientValidationGroup;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
@@ -20,12 +21,15 @@ public class PatientRequestDTO {
     @Past(message = "Date of birth must be in the past")
     private LocalDate dateOfBirth;
 
-    @NotNull
-    @PastOrPresent(message = "Registered date cannot be in the future")
+
+    @NotNull(groups = CreatePatientValidationGroup.class,
+            message = "Registered date is required")
+    @PastOrPresent(groups = CreatePatientValidationGroup.class,
+            message = "Registered date cannot be in the future")
     private LocalDate registeredDate;
 
 
-//    GETTERS & SETTERS
+    //    GETTERS & SETTERS
     public String getName() {
         return name;
     }

@@ -15,4 +15,5 @@ public interface PatientRepository extends JpaRepository<Patient, UUID> {
 //    Custom methods
 
     boolean existsByEmail(String email);
+    boolean existsByEmailAndIdNot(String email, UUID id);;
 }

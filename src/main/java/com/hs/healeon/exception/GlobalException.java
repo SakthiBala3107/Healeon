@@ -1,5 +1,6 @@
 package com.hs.healeon.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @ControllerAdvice
 public class GlobalException {
 
@@ -59,13 +61,27 @@ public class GlobalException {
     public ResponseEntity<Map<String, String>> handleEmailAlreadyExistsException(
             EmailAlreadyExistsException ex) {
 
+//mesg for debug
+        log.warn(
+                "Email address already exists {}", ex.getMessage()
+        );
         Map<String, String> error = new HashMap<>();
         error.put("message", "Email address already exists");
 
         return ResponseEntity
-                .status(HttpStatus.CONFLICT)
+                .badRequest()
                 .body(error);
     }
 
+    //  PATIENT NOT FOUND ERROR HANDLER
+    @ExceptionHandler(PatientNotFoundException.class)
+    public ResponseEntity<Map<String, String>> PatientNotFoundException(PatientNotFoundException ex) {
 
+        Map<String, String> error = new HashMap<>();
+
+        log.warn("Patient not found {}", ex.getMessage());
+        error.put("message", "Patient not found");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+
+    }
 } // END OF CLASS
