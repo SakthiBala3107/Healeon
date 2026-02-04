@@ -4,6 +4,7 @@ import com.hs.healeon.dto.PatientRequestDTO;
 import com.hs.healeon.dto.PatientResponseDTO;
 import com.hs.healeon.exception.EmailAlreadyExistsException;
 import com.hs.healeon.exception.PatientNotFoundException;
+import com.hs.healeon.grpc.BillingServiceGrpcClient;
 import com.hs.healeon.mapper.PatientMapper;
 import com.hs.healeon.models.Patient;
 import com.hs.healeon.repository.PatientRepository;
@@ -18,6 +19,7 @@ import java.util.UUID;
 public class PatientService {
 
     private final PatientRepository patientRepository;
+    private final BillingServiceGrpcClient billingServiceGrpcClient;
 
     // HELPER METHODS
     // CREATE
@@ -38,9 +40,7 @@ public class PatientService {
     public List<PatientResponseDTO> getPatients() {
         List<Patient> patients = patientRepository.findAll();
 
-        return patients.stream()
-                .map(PatientMapper::toDTO)
-                .toList();
+        return patients.stream().map(PatientMapper::toDTO).toList();
     }
 
     // CREATE NEW PATIENT
@@ -49,9 +49,14 @@ public class PatientService {
         // CHECK IF EMAIL ALREADY EXISTS
         validateEmailForCreate(patientRequestDTO.getEmail());
 
-        Patient newPatient = patientRepository.save(
-                PatientMapper.toModel(patientRequestDTO)
-        );
+        Patient newPatient = patientRepository.save(PatientMapper.toModel(patientRequestDTO));
+
+
+//        CREATING BILLING ACCOUNT(SERVICE) PATIENT  VIA GRPC CALL
+
+        billingServiceGrpcClient.createBillingAccount(newPatient.getId().toString(),
+                newPatient.getName(),
+                newPatient.getEmail());
 
         return PatientMapper.toDTO(newPatient);
     }
@@ -59,8 +64,7 @@ public class PatientService {
     // UPDATE PATIENT
     public PatientResponseDTO updatePatient(UUID id, PatientRequestDTO patientRequestDTO) {
 
-        Patient patient = patientRepository.findById(id)
-                .orElseThrow(() -> new PatientNotFoundException(id));
+        Patient patient = patientRepository.findById(id).orElseThrow(() -> new PatientNotFoundException(id));
 
         // CHECK IF EMAIL ALREADY EXISTS
         validateEmailForUpdate(patientRequestDTO.getEmail(), id);
@@ -77,7 +81,7 @@ public class PatientService {
         return PatientMapper.toDTO(updatedPatient);
     }
 
-//    Delete patient
+    //    Delete patient
     public void deletePatient(UUID id) {
         patientRepository.deleteById(id);
     }
