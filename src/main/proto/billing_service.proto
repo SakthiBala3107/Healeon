@@ -1,22 +1,20 @@
 syntax = "proto3";
 
+package billing;
+
 option java_multiple_files = true;
 option java_package = "billing";
+option java_outer_classname = "BillingProto";
 
-//its sort of like a interface
 service BillingService {
-//  this is a abstarct method
   rpc CreateBillingAccount (BillingRequest) returns (BillingResponse);
 }
 
-
-//dto
 message BillingRequest {
   string id = 1;
   string name = 2;
   string email = 3;
 }
-
 
 message BillingResponse {
   string accountId = 1;

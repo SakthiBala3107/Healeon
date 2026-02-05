@@ -129,6 +129,14 @@
             <scope>compile</scope>
         </dependency>
 
+
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+            <version>4.0.2</version>
+        </dependency>
+
+
     </dependencies>
 
     <build>

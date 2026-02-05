@@ -5,6 +5,7 @@ import com.hs.healeon.dto.PatientResponseDTO;
 import com.hs.healeon.exception.EmailAlreadyExistsException;
 import com.hs.healeon.exception.PatientNotFoundException;
 import com.hs.healeon.grpc.BillingServiceGrpcClient;
+import com.hs.healeon.kafka.KafkaProducer;
 import com.hs.healeon.mapper.PatientMapper;
 import com.hs.healeon.models.Patient;
 import com.hs.healeon.repository.PatientRepository;
@@ -20,6 +21,7 @@ public class PatientService {
 
     private final PatientRepository patientRepository;
     private final BillingServiceGrpcClient billingServiceGrpcClient;
+    private final KafkaProducer kafkaProducer;
 
     // HELPER METHODS
     // CREATE
@@ -58,6 +60,10 @@ public class PatientService {
                 newPatient.getName(),
                 newPatient.getEmail());
 
+
+//        creating patient created event via kafka producer
+
+        kafkaProducer.sendEvent(newPatient);
         return PatientMapper.toDTO(newPatient);
     }
 
