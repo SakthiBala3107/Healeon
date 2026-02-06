@@ -129,15 +129,15 @@
             <scope>compile</scope>
         </dependency>
 
-<!--        kafka-->
-
+        <!-- Kafka -->
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
-            <version>3.3.0</version>
+            <version>4.0.2</version>
         </dependency>
 
     </dependencies>
+
 
     <build>
         <!-- OS Maven plugin extension MUST be here -->
