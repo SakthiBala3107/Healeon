@@ -5,10 +5,12 @@ import com.hs.healeon.dto.PatientResponseDTO;
 import com.hs.healeon.exception.EmailAlreadyExistsException;
 import com.hs.healeon.exception.PatientNotFoundException;
 import com.hs.healeon.grpc.BillingServiceGrpcClient;
+import com.hs.healeon.kafka.KafkaProducer;
 import com.hs.healeon.mapper.PatientMapper;
 import com.hs.healeon.models.Patient;
 import com.hs.healeon.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,60 +18,74 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j  // ✅ Lombok generates 'log' automatically
 public class PatientService {
 
     private final PatientRepository patientRepository;
     private final BillingServiceGrpcClient billingServiceGrpcClient;
+    private final KafkaProducer kafkaProducer;
 
+    // --------------------
     // HELPER METHODS
-    // CREATE
     private void validateEmailForCreate(String email) {
         if (patientRepository.existsByEmail(email)) {
             throw new EmailAlreadyExistsException(email);
         }
     }
 
-    // UPDATE
     private void validateEmailForUpdate(String email, UUID id) {
         if (patientRepository.existsByEmailAndIdNot(email, id)) {
             throw new EmailAlreadyExistsException(email);
         }
     }
 
+    // --------------------
     // GET ALL PATIENT DETAILS
     public List<PatientResponseDTO> getPatients() {
         List<Patient> patients = patientRepository.findAll();
-
         return patients.stream().map(PatientMapper::toDTO).toList();
     }
 
+    // --------------------
     // CREATE NEW PATIENT
     public PatientResponseDTO createPatient(PatientRequestDTO patientRequestDTO) {
 
-        // CHECK IF EMAIL ALREADY EXISTS
+        // 1️⃣ Check if email already exists
         validateEmailForCreate(patientRequestDTO.getEmail());
 
+        // 2️⃣ Save patient to DB
         Patient newPatient = patientRepository.save(PatientMapper.toModel(patientRequestDTO));
 
-
-//        CREATING BILLING ACCOUNT(SERVICE) PATIENT  VIA GRPC CALL
-
-        billingServiceGrpcClient.createBillingAccount(newPatient.getId().toString(),
+        // 3️⃣ Create billing account via gRPC
+        billingServiceGrpcClient.createBillingAccount(
+                newPatient.getId().toString(),
                 newPatient.getName(),
-                newPatient.getEmail());
+                newPatient.getEmail()
+        );
 
+        // 4️⃣ Log before sending to Kafka
+        log.info("Sending patient details to Kafka: id={}, email={}, name={}",
+                newPatient.getId(), newPatient.getEmail(), newPatient.getName());
+
+        // 5️⃣ Send patient to Kafka
+        kafkaProducer.sendEvent(newPatient);
+
+        // 6️⃣ Optional log after sending
+        log.info("Patient details successfully sent to Kafka for id={}", newPatient.getId());
+
+        // 7️⃣ Return DTO
         return PatientMapper.toDTO(newPatient);
     }
 
+    // --------------------
     // UPDATE PATIENT
     public PatientResponseDTO updatePatient(UUID id, PatientRequestDTO patientRequestDTO) {
 
-        Patient patient = patientRepository.findById(id).orElseThrow(() -> new PatientNotFoundException(id));
+        Patient patient = patientRepository.findById(id)
+                .orElseThrow(() -> new PatientNotFoundException(id));
 
-        // CHECK IF EMAIL ALREADY EXISTS
         validateEmailForUpdate(patientRequestDTO.getEmail(), id);
 
-        // UPDATE FIELDS
         patient.setName(patientRequestDTO.getName());
         patient.setEmail(patientRequestDTO.getEmail());
         patient.setAddress(patientRequestDTO.getAddress());
@@ -77,11 +93,11 @@ public class PatientService {
 
         Patient updatedPatient = patientRepository.save(patient);
 
-        // CONVERT ENTITY TO DTO
         return PatientMapper.toDTO(updatedPatient);
     }
 
-    //    Delete patient
+    // --------------------
+    // DELETE PATIENT
     public void deletePatient(UUID id) {
         patientRepository.deleteById(id);
     }
