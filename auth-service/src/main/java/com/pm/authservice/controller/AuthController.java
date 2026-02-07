@@ -7,10 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 //import com.pm.authservice.service.AuthService;
 
 
@@ -34,5 +31,19 @@ public class AuthController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()); // 401 if null/empty
     }
 
+
+    //    Validate Token
+    @Operation(summary = "Validate Token")
+    @GetMapping("/validate")
+    public ResponseEntity<Void> validateToken(@RequestHeader("Authorization") String authHeader) {
+//      GUARD CLAUSE + logic
+        return Optional.ofNullable(authHeader)
+                .filter(h -> h.startsWith("Bearer "))
+                .map(h -> h.substring(7)) // extract token safely
+                .filter(token -> authService.validateToken(token)) // validate token
+                .map(token -> ResponseEntity.ok().<Void>build())    // valid
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()); // invalid or missing
+
+    }
 
 }
