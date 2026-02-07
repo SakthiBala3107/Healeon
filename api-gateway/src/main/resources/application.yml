@@ -1,0 +1,29 @@
+server:
+  port: 4004
+
+spring:
+  cloud:
+    gateway:
+      routes:
+
+        # ===============================
+        # PATIENT SERVICE
+        # ===============================
+        - id: patient-service-route
+          uri: http://patient-service:4000
+          predicates:
+            - Path=/api/patients/**
+          filters:
+            # remove only "/api"
+            - StripPrefix=1
+
+
+        # ===============================
+        # PATIENT SERVICE SWAGGER
+        # ===============================
+        - id: api-docs-patient-route
+          uri: http://patient-service:4000
+          predicates:
+            - Path=/api-docs/patients
+          filters:
+            - RewritePath=/api-docs/patients,/v3/api-docs
