@@ -4,6 +4,7 @@ package com.pm.authservice.service;
 import com.pm.authservice.dto.LoginRequestDTO;
 import com.pm.authservice.model.User;
 import com.pm.authservice.utills.JwtUtill;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -32,6 +33,19 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
         return token;
+    }
+
+
+    //    VALIDATE TOKEN
+    public boolean validateToken(String token) {
+        try {
+            jwtUtill.validateToken(token);
+            return true;
+        } catch (JwtException e) {
+            return false;
+
+        }
+
     }
 
     @Bean
