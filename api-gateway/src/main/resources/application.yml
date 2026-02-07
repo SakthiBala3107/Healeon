@@ -1,29 +1,41 @@
 server:
-  port: 4004
+  port: 4004 # Gateway listens on port 4004
 
 spring:
   cloud:
     gateway:
       routes:
+        - id: auth-service-route
+          uri: http://auth-service:4005
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
+          # This route is for the Auth Service endpoints (/auth/**)
 
-        # ===============================
-        # PATIENT SERVICE
-        # ===============================
+        # Route for /api/patients/** to patient-service
         - id: patient-service-route
           uri: http://patient-service:4000
           predicates:
             - Path=/api/patients/**
           filters:
-            # remove only "/api"
             - StripPrefix=1
+            - JwtValidation
+          # This route is for the Patient Service endpoints (/api/patients/**) with JWT validation
 
-
-        # ===============================
-        # PATIENT SERVICE SWAGGER
-        # ===============================
+        # Route for /api/docs/patients to patient-service /v3/api-docs
         - id: api-docs-patient-route
           uri: http://patient-service:4000
           predicates:
             - Path=/api-docs/patients
           filters:
             - RewritePath=/api-docs/patients,/v3/api-docs
+          # This route is for accessing Patient Service API docs (/api-docs/patients)
+
+        - id: api-docs-auth-route
+          uri: http://auth-service:4005
+          predicates:
+            - Path=/api-docs/auth
+          filters:
+            - RewritePath=/api-docs/auth,/v3/api-docs
+          # This route is for accessing Auth Service API docs (/api-docs/auth)
