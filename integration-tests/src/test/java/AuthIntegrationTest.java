@@ -19,7 +19,10 @@ public class AuthIntegrationTest {
 
 //        steps involved --> Arrange, Act, Assert
         String loginPayload = """
-                {"email":"testUserAzula@test.com", "password":"password123"}
+                        {
+                        "email": "testuser@test.com",
+                        "password": "password123"
+                  }
                 """;
 
         Response response =
