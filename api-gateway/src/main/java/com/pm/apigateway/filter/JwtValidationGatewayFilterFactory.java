@@ -19,23 +19,27 @@ public class JwtValidationGatewayFilterFactory extends
         this.webClient = webClientBuilder.baseUrl(authServiceUrl).build();
     }
 
+    //    APPLY METHOD  where  we define our custom filter logic
     @Override
     public GatewayFilter apply(Object config) {
         return (exchange, chain) -> {
             String token =
                     exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-
-            if(token == null || !token.startsWith("Bearer ")) {
+//check for token
+            if (token == null || !token.startsWith("Bearer ")) {
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                 return exchange.getResponse().setComplete();
             }
 
-            return webClient.get()
-                    .uri("/validate")
-                    .header(HttpHeaders.AUTHORIZATION, token)
-                    .retrieve()
-                    .toBodilessEntity()
-                    .then(chain.filter(exchange));
+//            once got the token we cal the auth service to check the token i slegit or not if it is then we let the
+//            user to go to next filter methods
+            
+            return webClient.get()                       // start HTTP call
+                    .uri("/validate")                     // endpoint in Auth Service
+                    .header(HttpHeaders.AUTHORIZATION, token) // PASS TOKEN HERE
+                    .retrieve()                           // execute request
+                    .toBodilessEntity()                   // ignore response body
+                    .then(chain.filter(exchange));     // continue ONLY if success;
         };
     }
 }
