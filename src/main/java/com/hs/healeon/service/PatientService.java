@@ -54,7 +54,9 @@ public class PatientService {
         validateEmailForCreate(patientRequestDTO.getEmail());
 
         // 2️⃣ Save patient to DB
-        Patient newPatient = patientRepository.save(PatientMapper.toModel(patientRequestDTO));
+        Patient newPatient = patientRepository.save(
+                PatientMapper.toModel(patientRequestDTO)
+        );
 
         // 3️⃣ Create billing account via gRPC
         billingServiceGrpcClient.createBillingAccount(
@@ -63,24 +65,22 @@ public class PatientService {
                 newPatient.getEmail()
         );
 
-<<<<<<< HEAD
         // 4️⃣ Log before sending to Kafka
         log.info("Sending patient details to Kafka: id={}, email={}, name={}",
-                newPatient.getId(), newPatient.getEmail(), newPatient.getName());
+                newPatient.getId(),
+                newPatient.getEmail(),
+                newPatient.getName()
+        );
 
-        // 5️⃣ Send patient to Kafka
+        // 5️⃣ Send patient-created event to Kafka
         kafkaProducer.sendEvent(newPatient);
 
-        // 6️⃣ Optional log after sending
-        log.info("Patient details successfully sent to Kafka for id={}", newPatient.getId());
+        // 6️⃣ Log after sending
+        log.info("Patient details successfully sent to Kafka for id={}",
+                newPatient.getId()
+        );
 
-        // 7️⃣ Return DTO
-=======
-
-//        creating patient created event via kafka producer
-
-        kafkaProducer.sendEvent(newPatient);
->>>>>>> ec7c8d43ca54e05f0254486860a09e7361b7058c
+        // 7️⃣ Return response DTO
         return PatientMapper.toDTO(newPatient);
     }
 

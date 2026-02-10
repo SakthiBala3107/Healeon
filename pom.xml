@@ -122,12 +122,12 @@
             <artifactId>protobuf-java</artifactId>
             <version>4.29.1</version>
         </dependency>
-        <dependency>
-            <groupId>com.pm</groupId>
-            <artifactId>billing-service</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.pm</groupId>-->
+<!--            <artifactId>billing-service</artifactId>-->
+<!--            <version>0.0.1-SNAPSHOT</version>-->
+<!--            <scope>compile</scope>-->
+<!--        </dependency>-->
 
         <!-- Kafka -->
         <dependency>
